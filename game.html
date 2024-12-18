@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid black;
+            background-color: #000;
+        }
+
+        .score, .high-score {
+            font-size: 24px;
+            color: black;
+            margin: 10px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .message {
+            font-size: 32px;
+            font-weight: bold;
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="score">Score: 0</div>
+    <div class="high-score">High Score: 0</div>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <button id="startBtn">Start Game</button>
+    <button id="restartBtn" style="display:none;">Restart Game</button>
+    <div class="message" id="message"></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scale = 20;
+        const rows = canvas.height / scale;
+        const columns = canvas.width / scale;
+        let snake;
+        let fruit;
+        let score;
+        let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0;
+        let gameStarted = false;
+
+        function Snake() {
+            this.snakeArray = [{x: 9 * scale, y: 9 * scale}];
+            this.direction = 'RIGHT';
+
+            this.move = function () {
+                let head = { ...this.snakeArray[0] };
+
+                if (this.direction === 'UP') head.y -= scale;
+                if (this.direction === 'DOWN') head.y += scale;
+                if (this.direction === 'LEFT') head.x -= scale;
+                if (this.direction === 'RIGHT') head.x += scale;
+
+                this.snakeArray.unshift(head);
+                if (head.x === fruit.x && head.y === fruit.y) {
+                    score++;
+                    if (score > highScore) highScore = score;
+                    spawnFruit();
+                } else {
+                    this.snakeArray.pop();
+                }
+            };
+
+            this.changeDirection = function (event) {
+                if (event.keyCode === 37 && this.direction !== 'RIGHT') {
+                    this.direction = 'LEFT';
+                }
+                if (event.keyCode === 38 && this.direction !== 'DOWN') {
+                    this.direction = 'UP';
+                }
+                if (event.keyCode === 39 && this.direction !== 'LEFT') {
+                    this.direction = 'RIGHT';
+                }
+                if (event.keyCode === 40 && this.direction !== 'UP') {
+                    this.direction = 'DOWN';
+                }
+            };
+
+            this.draw = function () {
+                for (let i = 0; i < this.snakeArray.length; i++) {
+                    ctx.fillStyle = (i % 2 === 0) ? 'green' : 'red'; // Alternating colors
+                    ctx.fillRect(this.snakeArray[i].x, this.snakeArray[i].y, scale, scale);
+                }
+            };
+
+            this.checkCollision = function () {
+                let head = this.snakeArray[0];
+                if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height) {
+                    return true;
+                }
+                for (let i = 1; i < this.snakeArray.length; i++) {
+                    if (head.x === this.snakeArray[i].x && head.y === this.snakeArray[i].y) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+        }
+
+        function Fruit() {
+            this.x;
+            this.y;
+
+            this.spawn = function () {
+                this.x = Math.floor(Math.random() * rows) * scale;
+                this.y = Math.floor(Math.random() * columns) * scale;
+            };
+
+            this.draw = function () {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(this.x, this.y, scale, scale);
+            };
+        }
+
+        function init() {
+            snake = new Snake();
+            fruit = new Fruit();
+            score = 0;
+            fruit.spawn();
+            document.addEventListener('keydown', (event) => {
+                if (gameStarted) {
+                    snake.changeDirection(event);
+                }
+            });
+
+            const gameLoop = setInterval(() => {
+                if (gameStarted) {
+                    snake.move();
+                    if (snake.checkCollision()) {
+                        clearInterval(gameLoop);
+                        document.getElementById('message').innerText = "Merry Christmas!";
+                        localStorage.setItem('highScore', highScore);
+                        document.getElementById('startBtn').style.display = 'none';
+                        document.getElementById('restartBtn').style.display = 'inline';
+                    }
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    snake.draw();
+                    fruit.draw();
+                    document.querySelector('.score').innerText = `Score: ${score}`;
+                    document.querySelector('.high-score').innerText = `High Score: ${highScore}`;
+                }
+            }, 100);
+        }
+
+        function spawnFruit() {
+            fruit.spawn();
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            gameStarted = true;
+            document.getElementById('startBtn').style.display = 'none';
+            init();
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            gameStarted = false;
+            document.getElementById('message').innerText = '';
+            document.getElementById('restartBtn').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'inline';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            score = 0;
+            document.querySelector('.score').innerText = `Score: ${score}`;
+            document.querySelector('.high-score').innerText = `High Score: ${highScore}`;
+        });
+    </script>
+</body>
+</html>
