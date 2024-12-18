@@ -2,20 +2,27 @@ body {
     height: 100%;
     font-family: Arial, sans-serif;
     color: black;
-    background-color: azure;
+    background-color: darkseagreen;
     margin: 0;
     padding: 0;
 }
 
 .header {
+    background-image: url("https://t4.ftcdn.net/jpg/04/70/43/61/240_F_470436193_QJBTSO7mNwD54FFZKIa8angaij9BLFFB.jpg");
     text-align: center;
     padding: 20px;
+    border: 1px solid;
+    margin: 20px;
 }
 
 .nav ul {
     list-style: none;
     text-align: center;
-    display: inline;
+    padding: 20px;
+    margin: 20px;
+    border: 1px solid;
+    background-color: whitesmoke;
+    
 }
 
 .content {
@@ -24,11 +31,12 @@ body {
     max-width: 800px;
     border: 1px solid #ddd;
     border-radius: 5px;
+    background-color: white;
 }
 
 .image {
     width: 100%;
-    max-width: 500px;
+    max-width: 560px;
     display: block;
-    margin: 20px auto;
+    
 }
